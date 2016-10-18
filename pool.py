@@ -135,7 +135,7 @@ class AtariGamePool(object):
                                                    max_pool_size=max_size or self.max_size)
 
 
-    def evaluate(self,n_games=1,save_path="./records", record_video=True,verbose=True):
+    def evaluate(self,n_games=1,save_path="./records", record_video=True,verbose=True,t_max=10000):
         """
         Plays an entire game start to end, records the logs(and possibly mp4 video), returns reward
         :param save_path: where to save the report
@@ -169,7 +169,8 @@ class AtariGamePool(object):
                 observation, reward, done, info = env.step(action[0])
                 total_reward += reward
                 prev_memories = new_memories
-                if done:
+
+                if done or t >= t_max:
                     if verbose:
                         print("Episode finished after {} timesteps with reward={}".format(t + 1,total_reward))
                     break
