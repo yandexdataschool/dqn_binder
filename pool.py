@@ -25,7 +25,7 @@ class AtariGamePool(object):
         #create atari games
         self.game_kwargs = kwargs
         self.game_title = game_title
-        self.games = [Atari(self.game_title,**kwargs) for _ in range(n_games)]
+        self.games = [Atari(self.game_title,**self.game_kwargs) for _ in range(n_games)]
 
         #initial observations
         self.prev_observations = [atari.reset() for atari in self.games]
@@ -143,7 +143,6 @@ class AtariGamePool(object):
         :return: total reward (scalar)
         """
         env = Atari(self.game_title, **self.game_kwargs)
-        env.reset()
 
         if record_video:
             env.monitor.start(save_path, force=True)
@@ -176,7 +175,6 @@ class AtariGamePool(object):
                     break
                 t += 1
             game_rewards.append(total_reward)
-
 
         env.monitor.close()
         del env

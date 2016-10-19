@@ -20,6 +20,9 @@ class Atari(AtariEnv):
         buffer_shape = [deflicker_buffer_size]+list(image_size)+[1 if grayscale else 3]
         self.images_buffer = np.zeros(buffer_shape,dtype='uint8')
 
+        #set to True whenever game state is changed. Used to remove observation dependency on rendering flags
+        self.new_image=True
+
         super(Atari,self).__init__(game=game, obs_type='image', frameskip=frameskip, repeat_action_probability=0.)
     def _step(self, a):
         assert self._obs_type == 'image'
@@ -32,6 +35,7 @@ class Atari(AtariEnv):
             num_steps = self.np_random.randint(self.frameskip[0], self.frameskip[1])
         for _ in range(num_steps):
             reward += self.ale.act(action)
+            self.new_image=True
             self._get_obs()  # need to call this guy to then correctly remove flickering
 
         ob = self.get_observation()
@@ -44,16 +48,18 @@ class Atari(AtariEnv):
         return self.deflicker(self.images_buffer)
     def _get_image(self):
         raw_img = super(Atari,self)._get_image()
-        img = imresize(raw_img,self.image_size,interp=self.interpolation)
 
-        if self.grayscale:
-            raw_img = img.mean(0,keepdims=True)
-        self.images_buffer = np.concatenate([self.images_buffer[1:],img[None,...]],axis=0)
-
+        if self.new_image:
+            img = imresize(raw_img,self.image_size,interp=self.interpolation)
+            if self.grayscale:
+                img = img.mean(-1,keepdims=True)
+            self.images_buffer = np.concatenate([self.images_buffer[1:],img[None,...]],axis=0)
+            self.new_image=False
         return raw_img
 
 
     def _reset(self):
         self.images_buffer = np.zeros_like(self.images_buffer,dtype=self.images_buffer.dtype)
         super(Atari,self)._reset()
+        self.new_image = True
         return self.get_observation()
