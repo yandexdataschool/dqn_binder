@@ -13,6 +13,7 @@ RUN apt-get install -y libav-tools
 RUN apt-get -y install swig
 
 USER main
+RUN conda install -y mkl
 
 RUN pip install --upgrade https://github.com/Theano/Theano/archive/master.zip
 RUN pip install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
